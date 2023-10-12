@@ -24,12 +24,12 @@ dp = Dispatcher()
 
 
 
-
+# Добавление обычных кнопок (т.е. таких, которые транслируют в чат то, что на них написано)
 @dp.message(Command("reply_builder"))
 async def reply_builder(message: types.Message):
     builder = ReplyKeyboardBuilder()
     for i in range(1, 17):
-        builder.add(types.KeyboardButton(text=str(i)))
+        builder.add(types.KeyboardButton(text=str(i)+" действие такое-то"))
     builder.adjust(4)
     await message.answer(
         "Выберите число:",
@@ -39,7 +39,7 @@ async def reply_builder(message: types.Message):
 
 # функция set_button_handler вызывается только при получении
 # callback-запросов, у которых callback_data начинается с "set:":
-@dp.callback_query(lambda c: c.data.startswith('set:'))
+@dp.callback_query(lambda c: c.data.startswith('set:'))  # TODO заменить лямбда-функцию на F-фильтр!
 async def set_button_handler(callback_query: types.CallbackQuery) -> None:
     index = int(callback_query.data.split(':')[1])
     #TODO понять, как слать сообщение о нажатой кнопке непосредственно в чат, а не только как callback_query.answer():
@@ -48,8 +48,8 @@ async def set_button_handler(callback_query: types.CallbackQuery) -> None:
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    await message.answer(f"Hello, {hbold(message.from_user.full_name)}!")
-    await message.answer("Как твои дела?")
+    await message.answer(f"Hello, {hbold(message.from_user.full_name)}!")  # простое сообщение в чат
+    await message.reply("Как твои дела?")  # сообщение "в ответ", с цитированием реплики пользователя
 
     builder = InlineKeyboardBuilder()
     for index in range(1, 11):
