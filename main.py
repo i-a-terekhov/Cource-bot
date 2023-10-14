@@ -2,6 +2,7 @@ import asyncio
 import logging
 import sys
 from os import getenv  # для запуска на https://replit.com
+from random import randint
 
 from aiogram.client import bot
 
@@ -31,9 +32,14 @@ main_menu = [
 ]
 
 
+async def delete_message(message: types.Message):
+    await asyncio.sleep(10)  # Ждем 10 секунд
+    await message.delete()  # Удаляем сообщение
+
+
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    await message.answer(f"Привет, {hbold(message.from_user.full_name)}!", reply_markup=ReplyKeyboardRemove())
+    start_message = await message.answer(f"Привет, {hbold(message.from_user.full_name)}!", reply_markup=ReplyKeyboardRemove())
 
     builder, another_builder = InlineKeyboardBuilder(), InlineKeyboardBuilder()
     for option in main_menu:
@@ -50,6 +56,8 @@ async def command_start_handler(message: Message) -> None:
         "Я - арома-бот, помогу с подбором аромата! Вжуух!",
         reply_markup=builder.as_markup(resize_keyboard=True)
     )
+    await delete_message(message) # удаляет сообщение полозователя (т.е. '\start', в данном случае)
+    # await bot.delete_message(chat_id=start_message.chat.id, message_id=start_message.message_id)
 
 
 @dp.callback_query(F.data.startswith('set:'))
@@ -83,10 +91,9 @@ async def without_puree(callback_query: types.CallbackQuery) -> None:
     await callback_query.message.answer("Так невкусно!")
 
 
-#TODO в процессе использования выяснилось, что при нажатии на кнопки с request_location и request_contact
+# В процессе использования выяснилось, что при нажатии на кнопки с request_location и request_contact
 # не срабатывает one_time_keyboard. В качестве костыля предлагается во всех хендлерах прописывать
 # аргумент для answer => reply_markup=ReplyKeyboardRemove() либо добавлять кнопку-пустышку
-
 # Специальные обычные кнопки позволяют запросить гео и контакт юзера:
 @dp.callback_query(F.data == 'спец')
 async def cmd_special_buttons(callback_query: types.CallbackQuery) -> None:
@@ -106,6 +113,34 @@ async def cmd_special_buttons(callback_query: types.CallbackQuery) -> None:
 @dp.message(F.text == 'Убрать клавиатуру')
 async def del_message(message: Message) -> None:
     await message.answer(text='Специальная клавиатура убрана', reply_markup=ReplyKeyboardRemove())
+
+
+@dp.message(Command("random"))
+async def cmd_random(message: types.Message):
+    builder = InlineKeyboardBuilder()
+    builder.add(types.InlineKeyboardButton(
+        text="Нажми меня",
+        callback_data="random_value")
+    )
+    await message.answer(
+        "Нажмите на кнопку, чтобы бот отправил число от 1 до 10",
+        reply_markup=builder.as_markup()
+    )
+
+
+@dp.callback_query(F.data == "random_value")
+async def send_random_value(callback: types.CallbackQuery):
+    await callback.message.answer(str(randint(1, 10)))
+    await callback.answer(
+        text="Спасибо, что воспользовались генератором случайных целых чисел от одного до десяти!\n"
+             "В следующей версии генератор сможет выдать целые числа от одного до ДВАДЦАТИ!",
+        show_alert=True
+    )
+
+
+@dp.message()
+async def ignor_message(message: Message) -> None:
+    pass
 
 # эхо-функция
 #TODO сделать эхо только текста
