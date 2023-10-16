@@ -157,21 +157,33 @@ async def send_random_value(callback: types.CallbackQuery):
 
 
 @dp.message(Command('clear'))
-async def cmd_clear(message: types.Message, bot: Bot) -> None:
+async def cmd_clear(message: types.Message, bot: Bot, forward: None) -> None:
+    forward = True
+    deleted_message = []
     print(f'Запрошено удаление сообщений в чате с id={message.chat.id}')
-    #TODO в данной конфигурации цикл продолжается последние 50 номеров для сообщений, это могут быть как "сообщения",
+    # В данной конфигурации цикл продолжается последние 50 номеров для сообщений, это могут быть как "сообщения",
     # так и "удаленные сообщения". Сообщения, написанные после кнопки "Очистить чат" - остаются.
     for i in range(message.message_id, message.message_id - 50, -1):
         try:
-            await bot.delete_message(message.chat.id, i)
-        except Exception as ex:
-            pass # print(ex)
+            ex_message = await bot.forward_message(
+                        chat_id=message.chat.id,
+                        from_chat_id=message.chat.id,
+                        message_id=i)
+            if ex_message:
+                await bot.delete_message(message.chat.id, i)
+                print(f'Удалено сообщение {i}: {ex_message.text}')
+                deleted_message.append(ex_message.text)
+                if forward:
+                    await bot.delete_message(message.chat.id, ex_message.message_id)
+        except:
+            pass
+    print('Удалены сообщения', deleted_message)
     await message.answer('/start')
 
 
 @dp.callback_query(F.data == "clear")
 async def clear(callback: types.CallbackQuery):
-    await cmd_clear(callback.message, dp.bot)
+    await cmd_clear(callback.message, dp.bot, None)
 
 
 # эхо-функция
