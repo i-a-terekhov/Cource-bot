@@ -16,6 +16,8 @@ from aiogram.utils.markdown import hbold
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from aiogram import F
+from aiogram.exceptions import TelegramBadRequest
+
 
 # TOKEN = getenv("toren")  # для запуска на https://replit.com
 TOKEN = tokenfile.token  # для оффлайна
@@ -32,14 +34,20 @@ main_menu = [
 ]
 
 
+# При удалении стартового сообщения от пользователя, в чате остается висеть плашка "Нажмите здесь, чтобы начать общение"
 async def delete_message(message: types.Message):
-    await asyncio.sleep(10)  # Ждем 10 секунд
+    await asyncio.sleep(1)  # Ждем 1 секунду
     await message.delete()  # Удаляем сообщение
 
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    start_message = await message.answer(f"Привет, {hbold(message.from_user.full_name)}!", reply_markup=ReplyKeyboardRemove())
+    await delete_message(message)  # удаляет сообщение пользователя (т.е. '\start', в данном случае)
+    await message.answer(
+        f"Привет, {hbold(message.from_user.full_name)}!",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    print(f'INFO: боту написал пользователь: {message.from_user.full_name}')
 
     builder, another_builder = InlineKeyboardBuilder(), InlineKeyboardBuilder()
     for option in main_menu:
@@ -50,14 +58,13 @@ async def command_start_handler(message: Message) -> None:
     another_builder.button(text='Кушоц', callback_data='кушоц')
     another_builder.button(text='Спец', callback_data='спец')
     another_builder.button(text='Instagram', url="https://instagram.com/cloud.parfume?igshid=MzRlODBiNWFlZA==")
+    another_builder.button(text='Очистить чат', callback_data='clear')
     another_builder.adjust(3)
     builder.attach(another_builder)
     await message.answer(
         "Я - арома-бот, помогу с подбором аромата! Вжуух!",
         reply_markup=builder.as_markup(resize_keyboard=True)
     )
-    await delete_message(message) # удаляет сообщение полозователя (т.е. '\start', в данном случае)
-    # await bot.delete_message(chat_id=start_message.chat.id, message_id=start_message.message_id)
 
 
 @dp.callback_query(F.data.startswith('set:'))
@@ -131,19 +138,44 @@ async def cmd_random(message: types.Message):
 @dp.callback_query(F.data == "random_value")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.message.answer(str(randint(1, 10)))
+
+    # await callback.message.answer(callback.from_user.full_name)
+    # await callback.message.answer(callback.from_user.language_code)
+    # dict_of_model_config = callback.from_user.model_config.items()
+    # string_items = ''
+    # for name, val in dict_of_model_config:
+    #     string_items += name + ': ' + str(val) + '\n'
+    # await callback.message.answer(string_items)
+
+    # Если вызывать callback.message.answer на андройде, кнопка "Нажми меня" будет 30 сек. анимироваться как ожидающая
+    # ответа. Но если добавить callback.answer(), анимация не наблюдается:
     await callback.answer(
         text="Спасибо, что воспользовались генератором случайных целых чисел от одного до десяти!\n"
              "В следующей версии генератор сможет выдать целые числа от одного до ДВАДЦАТИ!",
-        show_alert=True
+        show_alert=False  # Если Fasle - отображается вверху экрана, если True - выводится всплывающее сообщение
     )
 
 
-@dp.message()
-async def ignor_message(message: Message) -> None:
-    pass
+@dp.message(Command('clear'))
+async def cmd_clear(message: types.Message, bot: Bot) -> None:
+    print(f'Запрошено удаление сообщений в чате с id={message.chat.id}')
+    #TODO в данной конфигурации цикл продолжается до первого "пропуска" - такого сообщения, которое было удалено ранее
+    # следовательно, сообщения удаляются не все.
+    try:
+        for i in range(message.message_id, 0, -1):
+            await bot.delete_message(message.chat.id, i)
+    except Exception as ex:
+        print(ex)
+    await message.answer('/start')
+
+
+@dp.callback_query(F.data == "clear")
+async def clear(callback: types.CallbackQuery):
+    await cmd_clear(callback.message, dp.bot)
+
 
 # эхо-функция
-#TODO сделать эхо только текста
+# TODO сделать эхо только текста
 @dp.message()
 async def echo_handler(message: Message) -> None:
     try:
@@ -152,8 +184,14 @@ async def echo_handler(message: Message) -> None:
         await message.answer("Хорошая попытка! Попробуйте еще раз!")
 
 
+@dp.message()
+async def ignor_message(message: Message) -> None:
+    pass
+
+
 async def main() -> None:
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+    dp.bot = bot
     await dp.start_polling(bot)
 
 
