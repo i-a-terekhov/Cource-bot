@@ -159,13 +159,13 @@ async def send_random_value(callback: types.CallbackQuery):
 @dp.message(Command('clear'))
 async def cmd_clear(message: types.Message, bot: Bot) -> None:
     print(f'Запрошено удаление сообщений в чате с id={message.chat.id}')
-    #TODO в данной конфигурации цикл продолжается до первого "пропуска" - такого сообщения, которое было удалено ранее
-    # следовательно, сообщения удаляются не все.
-    try:
-        for i in range(message.message_id, 0, -1):
+    #TODO в данной конфигурации цикл продолжается последние 50 номеров для сообщений, это могут быть как "сообщения",
+    # так и "удаленные сообщения". Сообщения, написанные после кнопки "Очистить чат" - остаются.
+    for i in range(message.message_id, message.message_id - 50, -1):
+        try:
             await bot.delete_message(message.chat.id, i)
-    except Exception as ex:
-        print(ex)
+        except Exception as ex:
+            pass # print(ex)
     await message.answer('/start')
 
 
