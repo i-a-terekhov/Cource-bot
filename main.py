@@ -100,7 +100,7 @@ async def with_puree(callback: types.CallbackQuery) -> None:
 
 @dp.callback_query(F.data == 'без пюрешки')
 async def without_puree(callback: types.CallbackQuery) -> None:
-    # await callback.answer()
+    await callback.answer()
     await callback.message.answer("Так невкусно!")
 
 
@@ -151,16 +151,25 @@ async def cmd_random(message: types.Message):
 @dp.callback_query(F.data == "random_value")
 async def send_random_value(callback: types.CallbackQuery):
     # await callback.answer()
-    await callback.message.answer(str(randint(1, 10)))
+    compliments = [
+        "Ты умница!",
+        "Ты очень креативен!",
+        "Ты всегда поднимаешь настроение!",
+        "Ты такой добрый человек!",
+        "Твой смех заразителен!",
+        "Ты очень обаятелен!",
+        "Ты всегда готов помочь!",
+        "Ты такой талантливый!",
+        "Ты светишь как солнце!",
+        "Ты вдохновляешь меня!"
+    ]
+    rand_num = randint(1, len(compliments))
+    await callback.message.answer(str(rand_num))
     await callback.answer(
-        text="Спасибо, что воспользовались генератором случайных целых чисел от одного до десяти!\n"
-             "В следующей версии генератор сможет выдать целые числа от одного до ДВАДЦАТИ!",
-        show_alert=True  # Если Fasle - отображается вверху экрана, если True - выводится всплывающее сообщение
+        text=compliments[rand_num - 1],
+        show_alert=False  # Если Fasle - отображается вверху экрана, если True - выводится всплывающее сообщение
     )
-    #TODO проверить в остальных калбек-хендлерах наличие второго callback.answer() потому что:
     await callback.answer(text='второй текст не выводится')  # вероятно, callback.answer() срабатывает только один раз
-    print('Функция рандома отработала')
-
 
 
 @dp.message(Command('clear'))
