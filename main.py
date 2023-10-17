@@ -58,6 +58,7 @@ async def command_start_handler(message: Message) -> None:
     another_builder.button(text='Кушоц', callback_data='кушоц')
     another_builder.button(text='Спец', callback_data='спец')
     another_builder.button(text='Instagram', url="https://instagram.com/cloud.parfume?igshid=MzRlODBiNWFlZA==")
+    another_builder.button(text='Рандом', callback_data='random')
     another_builder.button(text='Очистить чат', callback_data='clear')
     another_builder.adjust(3)
     builder.attach(another_builder)
@@ -128,6 +129,12 @@ async def del_message(message: Message) -> None:
     await message.answer(text='Специальная клавиатура убрана', reply_markup=ReplyKeyboardRemove())
 
 
+@dp.callback_query(F.data == 'random')
+async def callrandfunc(callback: types.CallbackQuery):
+    await callback.answer()
+    await cmd_random(callback.message)
+
+
 @dp.message(Command("random"))
 async def cmd_random(message: types.Message):
     builder = InlineKeyboardBuilder()
@@ -143,22 +150,17 @@ async def cmd_random(message: types.Message):
 
 @dp.callback_query(F.data == "random_value")
 async def send_random_value(callback: types.CallbackQuery):
-    await callback.answer()
+    # await callback.answer()
     await callback.message.answer(str(randint(1, 10)))
-
-    # await callback.message.answer(callback.from_user.full_name)
-    # await callback.message.answer(callback.from_user.language_code)
-    # dict_of_model_config = callback.from_user.model_config.items()
-    # string_items = ''
-    # for name, val in dict_of_model_config:
-    #     string_items += name + ': ' + str(val) + '\n'
-    # await callback.message.answer(string_items)
-
     await callback.answer(
         text="Спасибо, что воспользовались генератором случайных целых чисел от одного до десяти!\n"
              "В следующей версии генератор сможет выдать целые числа от одного до ДВАДЦАТИ!",
-        show_alert=False  # Если Fasle - отображается вверху экрана, если True - выводится всплывающее сообщение
+        show_alert=True  # Если Fasle - отображается вверху экрана, если True - выводится всплывающее сообщение
     )
+    #TODO проверить в остальных калбек-хендлерах наличие второго callback.answer() потому что:
+    await callback.answer(text='второй текст не выводится')  # вероятно, callback.answer() срабатывает только один раз
+    print('Функция рандома отработала')
+
 
 
 @dp.message(Command('clear'))
