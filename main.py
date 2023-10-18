@@ -8,10 +8,11 @@ from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, InlineKeyboardButton
 from aiogram.utils.markdown import hbold
-from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder, InlineKeyboardMarkup
 from aiogram import F
 from aiogram.utils.chat_action import ChatActionSender
 from aiogram import exceptions
+from contextlib import suppress
 
 # from os import getenv  # для запуска на https://replit.com
 import tokenfile  # для оффлайна
@@ -29,6 +30,8 @@ main_menu = [
     'Доставка',
     'Не только парфюм',
 ]
+
+user_data = {}
 
 
 # При удалении стартового сообщения от пользователя, в чате остается висеть плашка "Нажмите здесь, чтобы начать общение"
@@ -49,13 +52,14 @@ async def command_start_handler(message: Message) -> None:
     builder, another_builder = InlineKeyboardBuilder(), InlineKeyboardBuilder()
     for option in main_menu:
         builder.button(text=option, callback_data=f"set:{option}")
-    builder.adjust(1, 2, 2, 1)
+    builder.adjust(1, 2)
 
     another_builder = InlineKeyboardBuilder()
     another_builder.button(text='Кушоц', callback_data='кушоц')
     another_builder.button(text='Спец', callback_data='спец')
     another_builder.button(text='Instagram', url="https://instagram.com/cloud.parfume?igshid=MzRlODBiNWFlZA==")
     another_builder.button(text='Рандом', callback_data='random')
+    another_builder.button(text='Нумератор', callback_data='cmd_numerate')
     another_builder.button(text='Очистить чат', callback_data='clear')
     another_builder.adjust(3)
     builder.attach(another_builder)
@@ -101,10 +105,10 @@ async def without_puree(callback: CallbackQuery) -> None:
     await callback.message.answer("Так невкусно!")
 
 
+# Специальные обычные кнопки позволяют запросить гео и контакт юзера.
 # В процессе использования выяснилось, что при нажатии на кнопки с request_location и request_contact
 # не срабатывает one_time_keyboard. В качестве костыля предлагается во всех хендлерах прописывать
-# аргумент для answer => reply_markup=ReplyKeyboardRemove() либо добавлять кнопку-пустышку
-# Специальные обычные кнопки позволяют запросить гео и контакт юзера:
+# аргумент для callback.message.answer => reply_markup=ReplyKeyboardRemove() либо добавлять кнопку-пустышку
 @dp.callback_query(F.data == 'спец')
 async def cmd_special_buttons(callback: CallbackQuery) -> None:
     await callback.answer()
@@ -164,9 +168,53 @@ async def send_random_value(callback: CallbackQuery):
     await callback.message.answer(str(rand_num))
     await callback.answer(
         text=compliments[rand_num - 1],
-        show_alert=False  # Если Fasle - отображается вверху экрана, если True - выводится всплывающее сообщение
+        show_alert=True  # Если Fasle - отображается вверху экрана, если True - выводится всплывающее сообщение с "ОК"
     )
     await callback.answer(text='второй текст не выводится')  # вероятно, callback.answer() срабатывает только один раз
+
+
+# Клавиатура и функции вывода "сообщения" и "обновленного сообщения" для функции numbers
+def get_numbers_keyboard():
+    buttons = [
+        [
+            InlineKeyboardButton(text="-1", callback_data="num_decr"),
+            InlineKeyboardButton(text="+1", callback_data="num_incr")
+        ],
+        [InlineKeyboardButton(text="Подтвердить", callback_data="num_finish")]
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+async def update_numbers_text(message: Message, new_value: int):
+    with suppress(exceptions.TelegramBadRequest):
+        await message.edit_text(
+            f"Вы указали: {new_value}",
+            reply_markup=get_numbers_keyboard()
+        )
+
+
+@dp.callback_query(F.data == 'cmd_numerate')
+async def start_cmd_numbers(callback: CallbackQuery):
+    user_data[callback.from_user.id] = 0
+    await callback.message.answer(text="Укажите число: 0", reply_markup=get_numbers_keyboard())
+
+
+@dp.callback_query(F.data.startswith("num_"))
+async def callbacks_numbers(callback: CallbackQuery):
+    user_value = user_data.get(callback.from_user.id, 0)
+    action = callback.data.split("_")[1]
+
+    if action == "incr":
+        user_data[callback.from_user.id] = user_value + 1
+        await update_numbers_text(callback.message, user_value + 1)
+    elif action == "decr":
+        user_data[callback.from_user.id] = user_value - 1
+        await update_numbers_text(callback.message, user_value - 1)
+    elif action == "finish":
+        await callback.message.edit_text(f"Итого: {user_value}")
+
+    await callback.answer()
 
 
 @dp.message(Command('clear'))
