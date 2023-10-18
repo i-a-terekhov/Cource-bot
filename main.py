@@ -2,10 +2,12 @@ import asyncio
 import logging
 import sys
 from random import randint
+from typing import Optional
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart
+from aiogram.filters.callback_data import CallbackData
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, InlineKeyboardButton
 from aiogram.utils.markdown import hbold
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder, InlineKeyboardMarkup
@@ -32,6 +34,11 @@ main_menu = [
 ]
 
 user_data = {}
+
+
+class NumbersCallbackFactory(CallbackData, prefix="fabnum"):
+    action: str
+    value: Optional[int] = None
 
 
 # При удалении стартового сообщения от пользователя, в чате остается висеть плашка "Нажмите здесь, чтобы начать общение"
@@ -173,7 +180,8 @@ async def send_random_value(callback: CallbackQuery):
     await callback.answer(text='второй текст не выводится')  # вероятно, callback.answer() срабатывает только один раз
 
 
-# Клавиатура и функции вывода "сообщения" и "обновленного сообщения" для функции numbers
+# Обычная клавиатура вывода "сообщения" и "обновленного сообщения" для функции numbers
+# При множестве кнопок или сложно-составных калбеках - обрабатывать из становится затруднительно
 def get_numbers_keyboard():
     buttons = [
         [
@@ -188,40 +196,41 @@ def get_numbers_keyboard():
     return keyboard
 
 
-async def update_numbers_text(message: Message, new_value: int):
+# Альтернативная клавиатура, построенная с использованием фабрики калбеков NumbersCallbackFactory()
+def get_numbers_keyboard_fab():
+    builder = InlineKeyboardBuilder()
+    builder.button(text="-2", callback_data=NumbersCallbackFactory(action="change", value=-2))
+    builder.button(text="-1", callback_data=NumbersCallbackFactory(action="change", value=-1))
+    builder.button(text="+1", callback_data=NumbersCallbackFactory(action="change", value=1))
+    builder.button(text="+2", callback_data=NumbersCallbackFactory(action="change", value=2))
+    builder.button(text="Подтвердить", callback_data=NumbersCallbackFactory(action="finish"))
+    builder.adjust(4)
+    return builder.as_markup()
+
+
+async def update_numbers_text_fab(message: Message, new_value: int):
     with suppress(exceptions.TelegramBadRequest):
         await message.edit_text(
             f"Вы указали       :    {new_value}",
-            reply_markup=get_numbers_keyboard()
+            reply_markup=get_numbers_keyboard_fab()
         )
 
 
 @dp.callback_query(F.data == 'cmd_numerate')
 async def start_cmd_numbers(callback: CallbackQuery):
     user_data[callback.from_user.id] = 0
-    await callback.message.answer(text="Укажите число:    0", reply_markup=get_numbers_keyboard())
+    await callback.message.answer(text="Укажите число:    0", reply_markup=get_numbers_keyboard_fab())
 
 
-@dp.callback_query(F.data.startswith("num_"))
-async def callbacks_numbers(callback: CallbackQuery):
+@dp.callback_query(NumbersCallbackFactory.filter())
+async def callbacks_numbers_change(callback: CallbackQuery, callback_data: NumbersCallbackFactory):
     user_value = user_data.get(callback.from_user.id, 0)
-    action = callback.data.split("_")[1]
 
-    if action == "-2":
-        user_data[callback.from_user.id] = user_value - 2
-        await update_numbers_text(callback.message, user_value - 2)
-    elif action == "-1":
-        user_data[callback.from_user.id] = user_value - 1
-        await update_numbers_text(callback.message, user_value - 1)
-    elif action == "+1":
-        user_data[callback.from_user.id] = user_value + 1
-        await update_numbers_text(callback.message, user_value + 1)
-    elif action == "+2":
-        user_data[callback.from_user.id] = user_value + 2
-        await update_numbers_text(callback.message, user_value + 2)
-    elif action == "finish":
+    if callback_data.action == "change":
+        user_data[callback.from_user.id] = user_value + callback_data.value
+        await update_numbers_text_fab(callback.message, user_value + callback_data.value)
+    else:
         await callback.message.edit_text(f"Итого: {user_value}")
-
     await callback.answer()
 
 
