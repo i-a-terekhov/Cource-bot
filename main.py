@@ -13,6 +13,7 @@ from aiogram.utils.markdown import hbold
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder, InlineKeyboardMarkup
 from aiogram import F
 from aiogram.utils.chat_action import ChatActionSender
+from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 from aiogram import exceptions
 from contextlib import suppress
 
@@ -23,6 +24,9 @@ import tokenfile  # для оффлайна
 TOKEN = tokenfile.token  # для оффлайна
 
 dp = Dispatcher()
+# Такой мидлварь автоматически отвечает на любой калбек одной стандартной фразой, "перекрывая" прописанные в калбеках.
+# Флаг pre отвечает за непереопределяемость callback.answer() внутри калбека
+dp.callback_query.middleware(CallbackAnswerMiddleware(pre=False, text="Готово!", show_alert=True))
 
 main_menu = [
     'Ароматы',
@@ -89,7 +93,8 @@ async def set_button_handler(callback: CallbackQuery) -> None:
 
 @dp.callback_query(F.data == 'кушоц')
 async def pure(callback: CallbackQuery) -> None:
-    await callback.answer()
+    # Для тестирования dp.callback_query.middleware() с аргументом pre:
+    await callback.answer(text='Прекрасно!', show_alert=True)
     keyboard_inline = InlineKeyboardBuilder()
     keyboard_inline.button(text='С пюрешкой', callback_data='с пюрешкой')
     keyboard_inline.button(text='Без пюрешки', callback_data='без пюрешки')
