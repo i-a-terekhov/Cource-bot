@@ -177,8 +177,10 @@ async def send_random_value(callback: CallbackQuery):
 def get_numbers_keyboard():
     buttons = [
         [
-            InlineKeyboardButton(text="-1", callback_data="num_decr"),
-            InlineKeyboardButton(text="+1", callback_data="num_incr")
+            InlineKeyboardButton(text="-2", callback_data="num_-2"),
+            InlineKeyboardButton(text="-1", callback_data="num_-1"),
+            InlineKeyboardButton(text="+1", callback_data="num_+1"),
+            InlineKeyboardButton(text="+2", callback_data="num_+2")
         ],
         [InlineKeyboardButton(text="Подтвердить", callback_data="num_finish")]
     ]
@@ -189,7 +191,7 @@ def get_numbers_keyboard():
 async def update_numbers_text(message: Message, new_value: int):
     with suppress(exceptions.TelegramBadRequest):
         await message.edit_text(
-            f"Вы указали: {new_value}",
+            f"Вы указали       :    {new_value}",
             reply_markup=get_numbers_keyboard()
         )
 
@@ -197,7 +199,7 @@ async def update_numbers_text(message: Message, new_value: int):
 @dp.callback_query(F.data == 'cmd_numerate')
 async def start_cmd_numbers(callback: CallbackQuery):
     user_data[callback.from_user.id] = 0
-    await callback.message.answer(text="Укажите число: 0", reply_markup=get_numbers_keyboard())
+    await callback.message.answer(text="Укажите число:    0", reply_markup=get_numbers_keyboard())
 
 
 @dp.callback_query(F.data.startswith("num_"))
@@ -205,12 +207,18 @@ async def callbacks_numbers(callback: CallbackQuery):
     user_value = user_data.get(callback.from_user.id, 0)
     action = callback.data.split("_")[1]
 
-    if action == "incr":
-        user_data[callback.from_user.id] = user_value + 1
-        await update_numbers_text(callback.message, user_value + 1)
-    elif action == "decr":
+    if action == "-2":
+        user_data[callback.from_user.id] = user_value - 2
+        await update_numbers_text(callback.message, user_value - 2)
+    elif action == "-1":
         user_data[callback.from_user.id] = user_value - 1
         await update_numbers_text(callback.message, user_value - 1)
+    elif action == "+1":
+        user_data[callback.from_user.id] = user_value + 1
+        await update_numbers_text(callback.message, user_value + 1)
+    elif action == "+2":
+        user_data[callback.from_user.id] = user_value + 2
+        await update_numbers_text(callback.message, user_value + 2)
     elif action == "finish":
         await callback.message.edit_text(f"Итого: {user_value}")
 
