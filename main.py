@@ -1,23 +1,20 @@
 import asyncio
 import logging
 import sys
-from os import getenv  # для запуска на https://replit.com
 from random import randint
 
-from aiogram.client import bot
-
-import tokenfile  # для оффлайна
-
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, InlineKeyboardButton
 from aiogram.utils.markdown import hbold
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from aiogram import F
-from aiogram.exceptions import TelegramBadRequest
 from aiogram.utils.chat_action import ChatActionSender
+from aiogram import exceptions
+
+# from os import getenv  # для запуска на https://replit.com
+import tokenfile  # для оффлайна
 
 # TOKEN = getenv("toren")  # для запуска на https://replit.com
 TOKEN = tokenfile.token  # для оффлайна
@@ -35,7 +32,7 @@ main_menu = [
 
 
 # При удалении стартового сообщения от пользователя, в чате остается висеть плашка "Нажмите здесь, чтобы начать общение"
-async def delete_message(message: types.Message):
+async def delete_message(message: Message):
     await asyncio.sleep(1)  # Ждем 1 секунду
     await message.delete()  # Удаляем сообщение
 
@@ -69,7 +66,7 @@ async def command_start_handler(message: Message) -> None:
 
 
 @dp.callback_query(F.data.startswith('set:'))
-async def set_button_handler(callback: types.CallbackQuery) -> None:
+async def set_button_handler(callback: CallbackQuery) -> None:
     await callback.answer()  # Данный callback.answer() нужен только для того, чтобы на андройде
     # не проигрывалась анимация ожидания у нажатой кнопки (белый волнообразный градиент). У яблока такого нет
     user_react = callback.data.split(':')[1]
@@ -80,7 +77,7 @@ async def set_button_handler(callback: types.CallbackQuery) -> None:
 
 
 @dp.callback_query(F.data == 'кушоц')
-async def pure(callback: types.CallbackQuery) -> None:
+async def pure(callback: CallbackQuery) -> None:
     await callback.answer()
     keyboard_inline = InlineKeyboardBuilder()
     keyboard_inline.button(text='С пюрешкой', callback_data='с пюрешкой')
@@ -93,13 +90,13 @@ async def pure(callback: types.CallbackQuery) -> None:
 
 
 @dp.callback_query(F.data == 'с пюрешкой')
-async def with_puree(callback: types.CallbackQuery) -> None:
+async def with_puree(callback: CallbackQuery) -> None:
     await callback.answer()
     await callback.message.answer("Отличный выбор!")
 
 
 @dp.callback_query(F.data == 'без пюрешки')
-async def without_puree(callback: types.CallbackQuery) -> None:
+async def without_puree(callback: CallbackQuery) -> None:
     await callback.answer()
     await callback.message.answer("Так невкусно!")
 
@@ -109,7 +106,7 @@ async def without_puree(callback: types.CallbackQuery) -> None:
 # аргумент для answer => reply_markup=ReplyKeyboardRemove() либо добавлять кнопку-пустышку
 # Специальные обычные кнопки позволяют запросить гео и контакт юзера:
 @dp.callback_query(F.data == 'спец')
-async def cmd_special_buttons(callback: types.CallbackQuery) -> None:
+async def cmd_special_buttons(callback: CallbackQuery) -> None:
     await callback.answer()
     builder = ReplyKeyboardBuilder()
     builder.button(text="Отправить геолокацию", request_location=True),
@@ -130,15 +127,15 @@ async def del_message(message: Message) -> None:
 
 
 @dp.callback_query(F.data == 'random')
-async def callrandfunc(callback: types.CallbackQuery):
+async def callrandfunc(callback: CallbackQuery):
     await callback.answer()
     await cmd_random(callback.message)
 
 
 @dp.message(Command("random"))
-async def cmd_random(message: types.Message):
+async def cmd_random(message: Message):
     builder = InlineKeyboardBuilder()
-    builder.add(types.InlineKeyboardButton(
+    builder.add(InlineKeyboardButton(
         text="Нажми меня",
         callback_data="random_value")
     )
@@ -149,7 +146,7 @@ async def cmd_random(message: types.Message):
 
 
 @dp.callback_query(F.data == "random_value")
-async def send_random_value(callback: types.CallbackQuery):
+async def send_random_value(callback: CallbackQuery):
     # await callback.answer()
     compliments = [
         "Ты умница!",
@@ -173,15 +170,14 @@ async def send_random_value(callback: types.CallbackQuery):
 
 
 @dp.message(Command('clear'))
-async def cmd_clear(message: types.Message, bot: Bot, del_forward: None) -> None:
+async def cmd_clear(message: Message, bot: Bot, del_forward: bool) -> None:
     # выводит "печатает" во время работы функции:
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id, interval=3.0):
         deleted_message = []
-        del_forward = False
         if not del_forward:
-            deleted_message = ['функция сохранения удаляемых сообщений была отключена']
+            deleted_message = 'Функция сохранения удаляемых сообщений была отключена'
         print(f'Запрошено удаление сообщений в чате с id={message.chat.id}')
-
+        sum_massages, pale_messages = 0, 0
         for i in range(message.message_id, message.message_id - 50, -1):
             try:
                 if del_forward:
@@ -194,31 +190,24 @@ async def cmd_clear(message: types.Message, bot: Bot, del_forward: None) -> None
                         deleted_message.append(ex_message.text)
                         await bot.delete_message(message.chat.id, ex_message.message_id)
                 await bot.delete_message(message.chat.id, i)
-            except:
-                pass
-        print('Удалены сообщения', deleted_message)
+            except exceptions.TelegramBadRequest:
+                pale_messages += 1
+            sum_massages += 1
+        print(f'Диапазон удалений: {sum_massages}, выявлено "пустышек": {pale_messages}')
+        print(f'Удалены сообщения: {deleted_message}')
         # await message.answer('/start')
 
 
 @dp.callback_query(F.data == "clear")
-async def clear(callback: types.CallbackQuery):
+async def clear(callback: CallbackQuery):
     await callback.answer()
-    await cmd_clear(callback.message, dp.bot, None)
+    await cmd_clear(message=callback.message, bot=dp.bot, del_forward=False)
 
 
 # эхо-функция
-@dp.message()
+@dp.message(F.text)
 async def echo_handler(message: Message) -> None:
-    try:
-        if types.ContentType.TEXT == message.content_type:
-            await message.send_copy(chat_id=message.chat.id)
-    except TypeError:
-        await message.answer("Хорошая попытка! Попробуйте еще раз!")
-
-
-@dp.message()
-async def ignor_message(message: Message) -> None:
-    pass
+    await message.send_copy(chat_id=message.chat.id)
 
 
 async def main() -> None:
