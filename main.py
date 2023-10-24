@@ -31,10 +31,8 @@ dp.callback_query.middleware(CallbackAnswerMiddleware(pre=False, text="Гото�
 main_menu = [
     'Ароматы',
     'О нас',
-    'Где затестить',
     'Объемы',
     'Доставка',
-    'Не только парфюм',
 ]
 
 user_data = {}
@@ -239,6 +237,7 @@ async def callbacks_numbers_change(callback: CallbackQuery, callback_data: Numbe
     await callback.answer()
 
 
+#TODO разобраться с нумерацией сообщений (ID), т.к. выявлено неудаление сообщений, после нескольких дней простоя
 @dp.message(Command('clear'))
 async def cmd_clear(message: Message, bot: Bot, del_forward: bool) -> None:
     # выводит "печатает" во время работы функции:
