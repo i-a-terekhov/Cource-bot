@@ -237,7 +237,7 @@ async def callbacks_numbers_change(callback: CallbackQuery, callback_data: Numbe
     await callback.answer()
 
 
-#TODO разобраться с нумерацией сообщений (ID), т.к. выявлено неудаление сообщений, после нескольких дней простоя
+# телеграм не позволяет боту удалить сообщения, старше определенной даты:
 @dp.message(Command('clear'))
 async def cmd_clear(message: Message, bot: Bot, del_forward: bool) -> None:
     # выводит "печатает" во время работы функции:
@@ -245,7 +245,7 @@ async def cmd_clear(message: Message, bot: Bot, del_forward: bool) -> None:
         deleted_message = []
         if not del_forward:
             deleted_message = 'Функция сохранения удаляемых сообщений была отключена'
-        print(f'Запрошено удаление сообщений в чате с id={message.chat.id}')
+        print(f'Запрошено удаление сообщений в чате с id={message.chat.id}, в сообщении с ID = {message.message_id}')
         sum_massages, pale_messages = 0, 0
         for i in range(message.message_id, message.message_id - 50, -1):
             try:
@@ -257,10 +257,13 @@ async def cmd_clear(message: Message, bot: Bot, del_forward: bool) -> None:
                         message_id=i)
                     if ex_message:
                         deleted_message.append(ex_message.text)
+                        # TODO возможно, понадобиться обработка исключений, при попытке удалить старые сообщения:
                         await bot.delete_message(message.chat.id, ex_message.message_id)
                 await bot.delete_message(message.chat.id, i)
             except exceptions.TelegramBadRequest:
                 pale_messages += 1
+            except Exception as ex:
+                print(f'Выявлено исключение: {ex}')
             sum_massages += 1
         print(f'Диапазон удалений: {sum_massages}, выявлено "пустышек": {pale_messages}')
         print(f'Удалены сообщения: {deleted_message}')
