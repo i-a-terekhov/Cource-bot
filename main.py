@@ -227,6 +227,7 @@ async def start_cmd_numbers(callback: CallbackQuery):
 
 @dp.callback_query(NumbersCallbackFactory.filter())
 async def callbacks_numbers_change(callback: CallbackQuery, callback_data: NumbersCallbackFactory):
+    print(f'INFO:получен каллбек', callback_data.__prefix__)
     user_value = user_data.get(callback.from_user.id, 0)
 
     if callback_data.action == "change":
@@ -247,7 +248,7 @@ async def cmd_clear(message: Message, bot: Bot, del_forward: bool) -> None:
             deleted_message = 'Функция сохранения удаляемых сообщений была отключена'
         print(f'Запрошено удаление сообщений в чате с id={message.chat.id}, в сообщении с ID = {message.message_id}')
         sum_massages, pale_messages = 0, 0
-        for i in range(message.message_id, message.message_id - 50, -1):
+        for i in range(message.message_id, message.message_id - 5, -1):  # TODO временное значение "-5"
             try:
                 if del_forward:
                     # пересылка сообщений - это "костыль", позволяющий сохранить текст сообщений:
