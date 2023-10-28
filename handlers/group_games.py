@@ -9,7 +9,7 @@ router = Router()
 
 
 @router.message(
-    ChatTypeFilter(chat_type=['group', 'supergroup']),
+    ChatTypeFilter(chat_type=['group', 'supergroup', 'private']),
     Command(commands=['dice'])
 )
 async def cmd_dice_in_group(message: Message):
@@ -17,7 +17,7 @@ async def cmd_dice_in_group(message: Message):
 
 
 @router.message(
-    ChatTypeFilter(chat_type=['group', 'supergroup']),
+    ChatTypeFilter(chat_type=['group', 'supergroup', 'private']),
     Command(commands=['basketball'])
 )
 async def cmd_basketball_in_group(message: Message):
