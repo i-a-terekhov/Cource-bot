@@ -5,20 +5,18 @@ from aiogram.filters import Command
 
 from filters.chat_type import ChatTypeFilter
 
+# фильтр можно повесить как на весь роутер, так и на отдельные хэндлеры:
 router = Router()
-
-
-@router.message(
-    ChatTypeFilter(chat_type=['group', 'supergroup', 'private']),
-    Command(commands=['dice'])
+router.message.filter(
+    ChatTypeFilter(chat_type=['group', 'supergroup', 'private'])
 )
+
+
+@router.message(Command(commands=['dice']))
 async def cmd_dice_in_group(message: Message):
     await message.answer_dice(emoji=DiceEmoji.DICE)
 
 
-@router.message(
-    ChatTypeFilter(chat_type=['group', 'supergroup', 'private']),
-    Command(commands=['basketball'])
-)
+@router.message(Command(commands=['basketball']))
 async def cmd_basketball_in_group(message: Message):
     await message.answer_dice(emoji=DiceEmoji.BASKETBALL)
