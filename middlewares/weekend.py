@@ -20,7 +20,6 @@ class WeekendMessageMiddleware(BaseMiddleware):
     ) -> Any:
         # Если сегодня не суббота и не воскресенье,
         # то продолжаем обработку.
-        print('ого')
         if not _is_weekend():
             return await handler(event, data)
         # В противном случае просто вернётся None
