@@ -13,7 +13,14 @@ async def main():
     bot = Bot(token=TOKEN)
     dp = Dispatcher()
 
-    dp.include_routers(checkin.router, group_games.router, usernames.router, questions.router, different_types.router)
+    # Порядок регистрации роутеров критичен. Апдейт, пояманный во втором роутере - не попадет в обработку к третьему:
+    dp.include_routers(
+        checkin.router,
+        group_games.router,
+        usernames.router,
+        questions.router,
+        different_types.router
+    )
     dp.callback_query.outer_middleware(WeekendCallbackMiddleware())
 
     # Альтернативный вариант регистрации роутеров по одному на строку

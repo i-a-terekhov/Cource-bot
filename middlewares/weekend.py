@@ -10,7 +10,7 @@ def _is_weekend() -> bool:
     return datetime.utcnow().weekday() in (5, 6)
 
 
-# Это будет inner-мидлварь на сообщения
+# Это будет inner-мидлварь на сообщения - будет навешан только в хендлере checkin.py
 class WeekendMessageMiddleware(BaseMiddleware):
     async def __call__(
         self,
@@ -30,7 +30,7 @@ class WeekendMessageMiddleware(BaseMiddleware):
             await event.answer(text='Бот не работает')
 
 
-# Это будет outer-мидлварь на любые колбэки
+# Это будет outer-мидлварь на любые колбэки - он будет навешан на диспетчер в bot.py
 class WeekendCallbackMiddleware(BaseMiddleware):
     async def __call__(
         self,
