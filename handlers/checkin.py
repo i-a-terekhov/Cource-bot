@@ -10,8 +10,10 @@ router.message.filter(F.chat.type == "private")
 router.message.middleware(WeekendMessageMiddleware())
 
 
-@router.message(Command("checkin"))
+@router.message(Command("checkin"), flags={"long_operation": "upload_video_note"})
 async def cmd_checkin(message: Message):
+    r = 24654654 ** 100
+    print(r)
     await message.answer(
         "Пожалуйста, нажмите на кнопку ниже:",
         reply_markup=get_checkin_kb()

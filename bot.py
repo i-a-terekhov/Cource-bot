@@ -2,6 +2,7 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from handlers import checkin, group_games, usernames, questions, different_types
 from middlewares.weekend import WeekendCallbackMiddleware
+from middlewares.long_operation import ChatActionMiddleware
 
 import tokenfile
 
@@ -21,6 +22,7 @@ async def main():
         questions.router,
         different_types.router
     )
+    dp.callback_query.outer_middleware(ChatActionMiddleware())
     dp.callback_query.outer_middleware(WeekendCallbackMiddleware())
 
     # Альтернативный вариант регистрации роутеров по одному на строку
