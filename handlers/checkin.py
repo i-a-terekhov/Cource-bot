@@ -4,16 +4,17 @@ from aiogram.types import Message, CallbackQuery
 
 from keyboards.checkin import get_checkin_kb
 from middlewares.weekend import WeekendMessageMiddleware
+from middlewares.long_operation import ChatActionMiddleware
 
 router = Router()
 router.message.filter(F.chat.type == "private")
 router.message.middleware(WeekendMessageMiddleware())
+router.message.middleware(ChatActionMiddleware())
 
 
 @router.message(Command("checkin"), flags={"long_operation": "upload_video_note"})
 async def cmd_checkin(message: Message):
-    r = 24654654 ** 100
-    print(r)
+    print('работает роутер checkin')
     await message.answer(
         "Пожалуйста, нажмите на кнопку ниже:",
         reply_markup=get_checkin_kb()

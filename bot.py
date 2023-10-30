@@ -22,7 +22,7 @@ async def main():
         questions.router,
         different_types.router
     )
-    dp.callback_query.outer_middleware(ChatActionMiddleware())
+    dp.message.outer_middleware(ChatActionMiddleware())
     dp.callback_query.outer_middleware(WeekendCallbackMiddleware())
 
     # Альтернативный вариант регистрации роутеров по одному на строку
