@@ -26,10 +26,6 @@ async def main():
     dp.message.outer_middleware(ChatActionMiddleware())
     dp.callback_query.outer_middleware(WeekendCallbackMiddleware())
 
-    # Альтернативный вариант регистрации роутеров по одному на строку
-    # dp.include_router(questions.router)
-    # dp.include_router(different_types.router)
-
     # Запускаем бота и пропускаем все накопленные входящие
     # Да, этот метод можно вызвать даже если у вас поллинг
     await bot.delete_webhook(drop_pending_updates=True)
