@@ -1,6 +1,6 @@
 import asyncio
 from aiogram import Bot, Dispatcher
-from handlers import checkin, group_games, usernames, questions, different_types, in_pm, bot_in_group
+from handlers import checkin, group_games, usernames, questions, different_types, in_pm
 from middlewares.weekend import WeekendCallbackMiddleware
 from middlewares.long_operation import ChatActionMiddleware
 
@@ -16,7 +16,6 @@ async def main():
 
     # Порядок регистрации роутеров критичен. Апдейт, пояманный во втором роутере - не попадет в обработку к третьему:
     dp.include_routers(
-        bot_in_group.router,
         in_pm.router,
         checkin.router,
         group_games.router,
