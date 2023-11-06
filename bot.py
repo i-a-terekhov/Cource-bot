@@ -7,11 +7,12 @@ from middlewares.long_operation import ChatActionMiddleware
 import tokenfile
 
 TOKEN = tokenfile.token
+bot_unit = Bot(token=TOKEN)
+OWNER_CHAT_ID = 5180054391
 
 
 # Запуск бота
-async def main():
-    bot = Bot(token=TOKEN)
+async def main(bot: Bot):
     dp = Dispatcher()
 
     # Порядок регистрации роутеров критичен. Апдейт, пойманный во втором роутере - не попадет в обработку к третьему:
@@ -26,12 +27,11 @@ async def main():
     )
     dp.message.outer_middleware(ChatActionMiddleware())
     dp.callback_query.outer_middleware(WeekendCallbackMiddleware())
-
     # Запускаем бота и пропускаем все накопленные входящие
     # Да, этот метод можно вызвать даже если у вас поллинг
-    await bot.delete_webhook(drop_pending_updates=True)
+    # await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(bot=bot_unit))

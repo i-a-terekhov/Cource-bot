@@ -39,7 +39,7 @@ async def user_unblocked_bot(event: ChatMemberUpdated):
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    await message.answer("Hello")
+    await message.answer(f"Hello, ID this chat is {message.chat.id}")
     users.add(message.from_user.id)
 
 
