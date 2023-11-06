@@ -1,12 +1,8 @@
 from asyncio import sleep
-from pprint import pprint
 
-from aiogram import F, Router, Bot
-from aiogram.filters.chat_member_updated import ChatMemberUpdatedFilter, IS_NOT_MEMBER, KICKED, MEMBER, ADMINISTRATOR, IS_MEMBER
-from aiogram.types import ChatMemberUpdated, Message
-
-from aiogram.filters.chat_member_updated import \
-    ChatMemberUpdatedFilter, JOIN_TRANSITION
+from aiogram import F, Router
+from aiogram.filters.chat_member_updated import ChatMemberUpdatedFilter, JOIN_TRANSITION, LEAVE_TRANSITION
+from aiogram.types import ChatMemberUpdated
 
 from bot import bot_unit, OWNER_CHAT_ID
 
@@ -19,37 +15,27 @@ chats_variants = {
     "channel": "канал",
 }
 
+chats_variants_exit = {
+    "group": "группы",
+    "supergroup": "супергруппы",
+    "channel": "канала",
+}
 
-@router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_NOT_MEMBER >> ADMINISTRATOR))
+
+@router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=JOIN_TRANSITION))
 async def bot_added_as_admin(event: ChatMemberUpdated):
-    print(f'Бот добавлен как админ в чат {event.chat.title}')
-    # print(event.chat.type)
-    # print(event.chat.title)
-    # print(event.chat.id)
-    # print(event.chat.permissions)
+    mess_text = f'Бот добавлен в {chats_variants[event.chat.type]} {event.chat.title}, ID {event.chat.id}'
+    print(mess_text)
+    await bot_unit.send_message(chat_id=OWNER_CHAT_ID, text=mess_text)
+
     await sleep(3)
     await event.answer(
-        text=f"Привет! Спасибо, что добавили "
-             f"меня в {chats_variants[event.chat.type]} '{event.chat.title}' как администратора. "
-             f"ID чата: {event.chat.id}"
-    )
-    await bot_unit.send_message(chat_id=OWNER_CHAT_ID, text='Бота добавили в группу')
-
-
-# Не получилось проверить возможность написания комментов ботом:
-# Не получилось проверить реакцию на добавление бота как простого участника, т.к. в телеге не найдено такой возможности
-@router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_NOT_MEMBER >> MEMBER))
-async def bot_added_as_member(event: ChatMemberUpdated):
-    await sleep(3)
-    await event.answer(
-        text=f"Привет! Спасибо, что добавили меня в "
-             f'{chats_variants[event.chat.type]} "{event.chat.title}" '
-             f"как обычного участника. ID чата: {event.chat.id}"
+        text=f"Привет! Спасибо, что добавили меня в {chats_variants[event.chat.type]} '{event.chat.title}'!"
     )
 
 
-@router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=ADMINISTRATOR >> IS_NOT_MEMBER))
+@router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=LEAVE_TRANSITION))
 async def bot_kicked(event: ChatMemberUpdated):
-    print(f'Бота удалили из группы {event.chat.title}')
-    mess_text = f'Бота удалили из группы {event.chat.title}, ID - {event.chat.id}'
+    mess_text = f'Бот удален из {chats_variants_exit[event.chat.type]} {event.chat.title}, ID {event.chat.id}'
+    print(mess_text)
     await bot_unit.send_message(chat_id=OWNER_CHAT_ID, text=mess_text)
