@@ -1,3 +1,5 @@
+from asyncio import sleep
+
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
@@ -12,8 +14,9 @@ router.message.middleware(WeekendMessageMiddleware())
 router.message.middleware(ChatActionMiddleware())
 
 
-@router.message(Command("checkin"), flags={"long_operation": "upload_video_note"})
+@router.message(Command("checkin"), flags={"long_operation": "typing"})
 async def cmd_checkin(message: Message):
+    await sleep(5)
     print('работает роутер checkin')
     await message.answer(
         "Пожалуйста, нажмите на кнопку ниже:",
