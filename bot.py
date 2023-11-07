@@ -27,8 +27,7 @@ async def main(bot: Bot):
     )
     dp.message.outer_middleware(ChatActionMiddleware())
     dp.callback_query.outer_middleware(WeekendCallbackMiddleware())
-    # Запускаем бота и пропускаем все накопленные входящие
-    # Да, этот метод можно вызвать даже если у вас поллинг
+    # пропустить необработанные апдейты:
     # await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
