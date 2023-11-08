@@ -16,7 +16,7 @@ router.message.middleware(ChatActionMiddleware())
 
 @router.message(Command("checkin"), flags={"long_operation": "typing"})
 async def cmd_checkin(message: Message):
-    await sleep(5)
+    await sleep(15)
     await message.answer(
         "Пожалуйста, нажмите на кнопку ниже:",
         reply_markup=get_checkin_kb()
@@ -25,7 +25,7 @@ async def cmd_checkin(message: Message):
 
 @router.callback_query(F.data == "confirm", flags={"long_operation": "typing"})
 async def checkin_confirm(callback: CallbackQuery):
-    await sleep(5)
+    await sleep(15)
     await callback.answer(
         "Спасибо, подтверждено!",
         show_alert=True
