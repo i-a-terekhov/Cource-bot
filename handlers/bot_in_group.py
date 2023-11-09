@@ -1,11 +1,11 @@
 from asyncio import sleep
 
-from aiogram import F, Router
+from aiogram import F, Router, Bot
 from aiogram.filters.chat_member_updated import ChatMemberUpdatedFilter,\
     LEAVE_TRANSITION, IS_NOT_MEMBER, MEMBER, ADMINISTRATOR
 from aiogram.types import ChatMemberUpdated
 
-from bot import bot_unit, OWNER_CHAT_ID
+from bot import OWNER_CHAT_ID, bot_unit
 
 router = Router()
 router.chat_member.filter(F.chat.type.in_({'group', 'supergroup', 'channel'}))
