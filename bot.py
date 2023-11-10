@@ -43,18 +43,12 @@ async def main(bot: Bot):
     # await bot.delete_webhook(drop_pending_updates=True)
 
     try:
-        if await bot.get_chat(OWNER_GROUP_NAME):
-            print(f"Бот успешно нашел чат {OWNER_GROUP_NAME}")
-            if await bot.get_chat_administrators(chat_id=OWNER_GROUP_NAME):
-                admins = await bot.get_chat_administrators(chat_id=OWNER_GROUP_NAME)
-                admins = {admin.user.first_name for admin in admins}
-                print(f'Администраторы чата {OWNER_GROUP_NAME}: {admins}')
-        else:
-            print(f"Чат {OWNER_GROUP_NAME} не найден или бот не имеет доступа.")
+        admins = await bot.get_chat_administrators(chat_id=OWNER_GROUP_NAME)
+        admins_list = [admin.user.first_name for admin in admins]
+        print(f'Администраторы чата {OWNER_GROUP_NAME}: {admins_list}')
     except Exception as e:
         print(f"Произошла ошибка: {e}")
 
-    # await dp.start_polling(bot, admins=admin_ids, allowed_updates=["message", "inline_query", "chat_member"])
     await dp.start_polling(bot, allowed_updates=["message", "inline_query", "chat_member"])
     await dp.start_polling(bot)
 
