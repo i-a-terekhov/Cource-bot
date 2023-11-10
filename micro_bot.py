@@ -26,6 +26,7 @@ async def main():
     admins = {admin.user.first_name for admin in admins_in_channel}
     print(f'Список админов чата {OWNER_CHANNEL_NAME}: {admins}')
 
+    # если не используется диспетчер, то хорошим тоном считает закрывать сессию бота с сервером
     await bot.session.close()
 
 if __name__ == "__main__":
