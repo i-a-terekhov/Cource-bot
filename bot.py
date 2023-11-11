@@ -5,7 +5,7 @@ from pprint import pprint
 
 from aiogram.types import ChatMember, User
 from aiogram import Bot, Dispatcher, exceptions
-from handlers import checkin, group_games, usernames, questions, different_types, in_pm, bot_in_group
+from handlers import checkin, group_games, usernames, questions, different_types, in_pm, bot_in_group, admin_changes_in_group, events_in_group
 from middlewares.weekend import WeekendCallbackMiddleware
 from middlewares.long_operation import ChatActionMiddleware
 
@@ -20,15 +20,17 @@ bot_unit = Bot(token=TOKEN)
 
 
 async def main(bot: Bot):
-    # logging.basicConfig(
-    #     level=logging.INFO,
-    #     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    # )
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+    )
 
     dp = Dispatcher()
     # Порядок регистрации роутеров критичен. Апдейт, пойманный во втором роутере - не попадет в обработку к третьему:
     dp.include_routers(
         bot_in_group.router,
+        events_in_group.router,
+        admin_changes_in_group.router,
         in_pm.router,
         checkin.router,
         group_games.router,
@@ -38,6 +40,10 @@ async def main(bot: Bot):
     )
     dp.message.outer_middleware(ChatActionMiddleware())
     dp.callback_query.outer_middleware(WeekendCallbackMiddleware())
+
+    # Подгрузка списка админов
+    admins = await bot.get_chat_administrators(OWNER_GROUP_NAME)
+    admin_ids = {admin.user.id for admin in admins}
 
     # пропустить необработанные апдейты:
     # await bot.delete_webhook(drop_pending_updates=True)
@@ -49,8 +55,8 @@ async def main(bot: Bot):
     except Exception as e:
         print(f"Произошла ошибка: {e}")
 
-    await dp.start_polling(bot, allowed_updates=["message", "inline_query", "chat_member"])
-    await dp.start_polling(bot)
+    # await dp.start_polling(bot, allowed_updates=["message", "inline_query", "chat_member"])
+    await dp.start_polling(bot, admins=admin_ids)
 
 
 if __name__ == "__main__":

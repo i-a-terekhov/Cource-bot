@@ -3,7 +3,7 @@ from aiogram.filters.chat_member_updated import ChatMemberUpdatedFilter,\
     KICKED, LEFT, RESTRICTED, MEMBER, ADMINISTRATOR, CREATOR
 from aiogram.types import ChatMemberUpdated
 
-from bot import OWNER_CHANNEL_ID
+from tokenfile import OWNER_CHANNEL_ID
 
 router = Router()
 router.chat_member.filter(F.chat.id == OWNER_CHANNEL_ID)

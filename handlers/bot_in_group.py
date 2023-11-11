@@ -5,7 +5,8 @@ from aiogram.filters.chat_member_updated import ChatMemberUpdatedFilter,\
     LEAVE_TRANSITION, IS_NOT_MEMBER, MEMBER, ADMINISTRATOR
 from aiogram.types import ChatMemberUpdated
 
-from bot import OWNER_CHAT_ID, bot_unit
+from bot import bot_unit
+from tokenfile import OWNER_CHAT_ID
 
 router = Router()
 router.chat_member.filter(F.chat.type.in_({'group', 'supergroup', 'channel'}))
