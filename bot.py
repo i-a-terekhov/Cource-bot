@@ -1,7 +1,9 @@
 import asyncio
 import logging
+import time
 from asyncio import sleep
 from pprint import pprint
+from threading import Thread
 
 from aiogram.types import ChatMember, User
 from aiogram import Bot, Dispatcher, exceptions
@@ -12,11 +14,15 @@ from middlewares.long_operation import ChatActionMiddleware
 import tokenfile as tf
 
 TOKEN = tf.TOKEN
+TOKEN_TWO = tf.TOKEN_TWO
+TOKEN_THREE = tf.TOKEN_THREE
 OWNER_CHAT_ID = tf.OWNER_CHAT_ID
 OWNER_CHANNEL_ID = tf.OWNER_CHANNEL_ID
 OWNER_GROUP_NAME = tf.OWNER_GROUP_NAME
 
 bot_unit = Bot(token=TOKEN)
+bot_riot = Bot(token=TOKEN_TWO)
+bot_citizen = Bot(token=TOKEN_THREE)
 
 
 async def main(bot: Bot):
@@ -59,5 +65,19 @@ async def main(bot: Bot):
     await dp.start_polling(bot, admins=admin_ids)
 
 
+async def sec_main():
+    while True:
+        try:
+            bot1poll = Thread(target=main, args=[bot_unit], daemon=True)
+            bot1poll.start()
+            bot2poll = Thread(target=main, args=[bot_riot], daemon=True)
+            bot2poll.start()
+            bot3poll = Thread(target=main, args=[bot_citizen], daemon=True)
+            bot3poll.start()
+        except Exception as e:
+            time.sleep(2)
+
 if __name__ == "__main__":
-    asyncio.run(main(bot_unit))
+    asyncio.run(sec_main())
+
+
