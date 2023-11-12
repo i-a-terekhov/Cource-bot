@@ -25,13 +25,8 @@ bot_riot = Bot(token=TOKEN_TWO)
 bot_citizen = Bot(token=TOKEN_THREE)
 
 
-async def main(bot: Bot):
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    )
-
-    dp = Dispatcher()
+# TODO проблема заключается в том, что роутер можно подключить только к одному диспетчеру
+async def set_up(dp):
     # Порядок регистрации роутеров критичен. Апдейт, пойманный во втором роутере - не попадет в обработку к третьему:
     dp.include_routers(
         bot_in_group.router,
@@ -46,6 +41,16 @@ async def main(bot: Bot):
     )
     dp.message.outer_middleware(ChatActionMiddleware())
     dp.callback_query.outer_middleware(WeekendCallbackMiddleware())
+
+
+async def main(bot: Bot):
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+    )
+
+    dp = Dispatcher()
+    await set_up(dp)
 
     # Подгрузка списка админов
     admins = await bot.get_chat_administrators(OWNER_GROUP_NAME)
@@ -65,19 +70,16 @@ async def main(bot: Bot):
     await dp.start_polling(bot, admins=admin_ids)
 
 
-async def sec_main():
-    while True:
-        try:
-            bot1poll = Thread(target=main, args=[bot_unit], daemon=True)
-            bot1poll.start()
-            bot2poll = Thread(target=main, args=[bot_riot], daemon=True)
-            bot2poll.start()
-            bot3poll = Thread(target=main, args=[bot_citizen], daemon=True)
-            bot3poll.start()
-        except Exception as e:
-            time.sleep(2)
-
 if __name__ == "__main__":
-    asyncio.run(sec_main())
+    # asyncio.run(main())
+
+    bots_farm = [bot_unit, bot_riot, bot_citizen]
+
+    loop = asyncio.get_event_loop()
+
+    tasks = [main(token) for token, in zip(bots_farm)]
+
+    loop.run_until_complete(asyncio.gather(*tasks))
+
 
 
