@@ -16,7 +16,7 @@ OWNER_GROUP_NAME = tf.OWNER_GROUP_NAME
 bot_unit = Bot(token=TOKEN)
 
 
-async def set_up(dp):
+async def set_up_routers(dp):
     # Порядок регистрации роутеров критичен. Апдейт, пойманный во втором роутере - не попадет в обработку к третьему:
     dp.include_routers(
         bot_in_group.router,
@@ -40,17 +40,16 @@ async def main(bot: Bot):
     )
 
     dp = Dispatcher()
-    await set_up(dp)
-
-    # Подгрузка списка админов
-    admins = await bot.get_chat_administrators(OWNER_GROUP_NAME)
-    admin_ids = {admin.user.id for admin in admins}
+    await set_up_routers(dp)
 
     # пропустить необработанные апдейты:
     # await bot.delete_webhook(drop_pending_updates=True)
 
+    admin_ids = {}
     try:
+        # Подгрузка списка админов
         admins = await bot.get_chat_administrators(chat_id=OWNER_GROUP_NAME)
+        admin_ids = {admin.user.id for admin in admins}
         admins_list = [admin.user.first_name for admin in admins]
         print(f'Администраторы чата {OWNER_GROUP_NAME}: {admins_list}')
     except Exception as e:

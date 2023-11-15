@@ -21,7 +21,7 @@ from contextlib import suppress
 import tokenfile  # для оффлайна
 
 # TOKEN = getenv("toren")  # для запуска на https://replit.com
-TOKEN = tokenfile.token  # для оффлайна
+TOKEN = tokenfile.TOKEN  # для оффлайна
 
 dp = Dispatcher()
 # Такой мидлварь автоматически отвечает на любой калбек одной стандартной фразой, "перекрывая" прописанные в калбеках.
