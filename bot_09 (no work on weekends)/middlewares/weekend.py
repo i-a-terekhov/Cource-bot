@@ -7,7 +7,7 @@ from aiogram.types import Message, CallbackQuery
 
 def _is_weekend() -> bool:
     # 5 - суббота, 6 - воскресенье
-    return datetime.utcnow().weekday() in (3, 4)
+    return datetime.utcnow().weekday() in (5, 6)
 
 
 # Это будет inner-мидлварь на сообщения - будет навешан только в хендлере checkin.py
@@ -20,7 +20,7 @@ class WeekendMessageMiddleware(BaseMiddleware):
     ) -> Any:
         # Если сегодня не суббота и не воскресенье,
         # то продолжаем обработку.
-        print('работает мидлварь weekend')
+        print('Работает мидлварь weekend')
         if not _is_weekend():
             return await handler(event, data)
         # В противном случае просто вернётся None

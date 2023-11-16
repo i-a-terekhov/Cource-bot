@@ -25,7 +25,7 @@ async def cmd_checkin(message: Message):
 
 @router.callback_query(F.data == "confirm", flags={"long_operation": "typing"})
 async def checkin_confirm(callback: CallbackQuery):
-    await sleep(15)
+    await sleep(3)
     await callback.answer(
         "Спасибо, подтверждено!",
         show_alert=True
