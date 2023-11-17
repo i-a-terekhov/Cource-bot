@@ -17,7 +17,7 @@ class ChatActionMiddleware(BaseMiddleware):
         event: Message,
         data: Dict[str, Any]
     ) -> Any:
-        # print(f'работает мидлварь long_operation')
+        print(f'Работает ChatActionMiddleware, проверяем флаг длительной операции')
         # for key, value in data.items():
         #     if dict_operations.get(key):
         #         if dict_operations[key] == value:

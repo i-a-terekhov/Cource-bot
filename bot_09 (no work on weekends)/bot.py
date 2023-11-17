@@ -3,7 +3,7 @@ import logging
 
 from aiogram import Bot, Dispatcher
 from handlers import checkin
-from middlewares.weekend import WeekendCallbackMiddleware
+from middlewares.weekend import WeekendCallbackMiddleware, WeekendMessageMiddleware
 from middlewares.long_operation import ChatActionMiddleware
 
 import tokenfile as tf
@@ -15,7 +15,7 @@ bot_unit = Bot(token=TOKEN)
 
 async def set_up_routers(dp):
     dp.include_routers(checkin.router)
-    dp.message.outer_middleware(ChatActionMiddleware())
+    dp.message.outer_middleware(WeekendMessageMiddleware())
     dp.callback_query.outer_middleware(WeekendCallbackMiddleware())
 
 
