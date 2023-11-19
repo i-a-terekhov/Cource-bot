@@ -17,6 +17,7 @@ class MiddlewareAlfa(BaseMiddleware):
         event: Message,
         data: Dict[str, Any],
     ) -> Any:
+        print(f'{self.name:20} {"start":>}: {data.get("first_random")} - {data.get("random")}')
 
         # Принимаем имя целевого хэндлера, если такого нет - считаем на данном этапе, что мидлварь is outer
         handler_name = get_flag(data, "handler_name")
@@ -26,16 +27,15 @@ class MiddlewareAlfa(BaseMiddleware):
             message_text = f'Целевой хэндлер: {handler_name}'
         await event.answer(text=f'{self.name} - start. {message_text}')
 
-        random = randint(1, 100)
-        first_random = get_flag(data, "first_random")
-        if first_random is None:
-            first_random = random
+        # Определяем значение random и first_random:
+        data["random"] = randint(1, 100)
+        if data.get("first_random") is None:
+            data["first_random"] = data["random"]
+        await event.answer(text=f'Выпало число {data["random"]} ({data["first_random"]})')
 
-        data["first_random"] = first_random
-        print(data)
-        await event.answer(text=f'Выпало число {random} ({first_random})')
-        # TODO разобраться, почему data["first_random"] не передается далее в мидлвари и вызывает ошибку при передаче в хендлер
-        if random > 5:
+        print(f'{self.name:20} {"end":>5}: {data.get("first_random")} - {data.get("random")}')
+
+        if data["random"] > 5:
             # Передаем полученный в мидлвари результат далее в хендлер (будет выведен на экран)
             result = await handler(event, data)
             await event.answer(text=f'{self.name} - end\nВы проходите дальше')

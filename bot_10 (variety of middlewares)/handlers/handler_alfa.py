@@ -11,9 +11,12 @@ router.message.middleware(MiddlewareAlfa(middleware_name="Middleware_D(alfa)"))
 router.message.outer_middleware(MiddlewareAlfa(middleware_name="Middleware_B(alfa)"))
 
 
-# TODO объяснить двойное срабатывание мидлваря_альфа: с флагом и без
-# можно передать в мидлварь какие-то свои параметры (например: handler_name):
+# Можно передать в мидлварь какие-то свои значения (например: handler_name).
+# Передавать данные из мидлварей можно через словарь data, который в мидлварях
+# будет получать значения в виде пар ключ-значение,
+# а в хендлере эти значения будут принимать приниматься через ключи в параметрах:
+
 @router.message(Command("start"), flags={"handler_name": "Handler_alfa"})
-async def cmd_checkin(message: Message, data: dict):
-    print(data)
+async def cmd_checkin(message: Message, random: int, first_random: int):
+    print(f'{__name__:26}: {first_random} - {random}')
     await message.answer(text=f'Handler A - working')
