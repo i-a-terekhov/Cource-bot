@@ -16,7 +16,7 @@ bot_unit = Bot(token=TOKEN)
 
 # Создаём роутер для режима обслуживания и ставим ему фильтры на типы
 maintenance_router = Router()
-maintenance_router.message.filter(MagicData(F.maintenance_mode.is_(True)))
+maintenance_router.message.filter(MagicData(F.maintenance_mode.is_(False)))
 maintenance_router.callback_query.filter(MagicData(F.maintenance_mode.is_(True)))
 
 regular_router = Router()

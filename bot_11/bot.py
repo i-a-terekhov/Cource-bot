@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
-from handlers import checkin, group_games, usernames, questions, different_types, in_pm, bot_in_group, admin_changes_in_group, events_in_group
+from handlers import in_pm, bot_in_group, admin_changes_in_group, events_in_group
 from middlewares.weekend import WeekendCallbackMiddleware
 from middlewares.long_operation import ChatActionMiddleware
 
@@ -17,17 +17,11 @@ bot_unit = Bot(token=TOKEN)
 
 
 async def set_up_routers(dp):
-    # Порядок регистрации роутеров критичен. Апдейт, пойманный во втором роутере - не попадет в обработку к третьему:
     dp.include_routers(
         bot_in_group.router,
         events_in_group.router,
         admin_changes_in_group.router,
-        in_pm.router,
-        checkin.router,
-        group_games.router,
-        usernames.router,
-        questions.router,
-        different_types.router
+        in_pm.router
     )
     dp.message.outer_middleware(ChatActionMiddleware())
     dp.callback_query.outer_middleware(WeekendCallbackMiddleware())

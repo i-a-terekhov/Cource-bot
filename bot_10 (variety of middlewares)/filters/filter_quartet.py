@@ -1,24 +1,14 @@
-from typing import Union, Dict, Any
-
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
 
-class ThreeOfFourFilter(BaseFilter):
-    async def __call__(self, message: Message) -> Union[bool, Dict[str, Any]]:
-        # Если entities вообще нет, вернётся None,
-        # в этом случае считаем, что это пустой список
-        entities = message.entities or []
-
-        # Проверяем любые юзернеймы и извлекаем их из текста
-        found_usernames = [
-            item.extract_from(message.text) for item in entities
-            if item.type == "mention"
-        ]
-
-        # Если юзернеймы есть, то "проталкиваем" их в хэндлер
-        # по имени "usernames"
-        if len(found_usernames) > 0:
-            return {"usernames": found_usernames}
-        # Если не нашли ни одного юзернейма, вернём False
+class FiftyPercentFilter(BaseFilter):
+    async def __call__(self, message: Message, random: int, first_random: int):
+        print(f'{"Filter":26}: {first_random} - {random}', end='  : ')
+        if random >= 30:
+            print('True')
+            await message.answer(text=f'Фильтр преодолен!')
+            return True
+        print('False')
+        await message.answer(text=f'Фильтр не пропустил апдейт')
         return False

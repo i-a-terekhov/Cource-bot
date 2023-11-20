@@ -6,7 +6,7 @@ from aiogram.types import Message
 from aiogram.dispatcher.flags import get_flag
 
 
-class MiddlewareAlfa(BaseMiddleware):
+class Middleware(BaseMiddleware):
     def __init__(self, middleware_name: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = middleware_name
@@ -35,9 +35,10 @@ class MiddlewareAlfa(BaseMiddleware):
 
         print(f'{self.name:20} {"end":>5}: {data.get("first_random")} - {data.get("random")}')
 
-        if data["random"] > 5:
-            # Передаем полученный в мидлвари результат далее в хендлер (будет выведен на экран)
+        if data["random"] > 50:
+            # Передаем полученный в мидлвари результат далее в хендлер, иначе весь апдейт будет считаться дропнутым
             result = await handler(event, data)
+            # Есть возможность что-то выполнить после выполнения хэндлера
             await event.answer(text=f'{self.name} - end\nВы проходите дальше')
             return result
         else:
