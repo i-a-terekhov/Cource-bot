@@ -4,8 +4,6 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
-# файл config_reader.py можно взять из репозитория
-# пример — в первой главе
 from tokenfile import TOKEN
 from handlers import common, ordering_food
 

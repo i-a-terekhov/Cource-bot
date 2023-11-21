@@ -65,14 +65,16 @@ async def food_chosen_incorrectly(message: Message):
 
 @router.message(OrderFood.choosing_food_size, F.text.in_(available_food_sizes))
 async def food_size_chosen(message: Message, state: FSMContext):
+    await state.update_data(chosen_food_size=message.text.lower())
     user_data = await state.get_data()
     await message.answer(
-        text=f"Вы выбрали {message.text.lower()} порцию {user_data['chosen_food']}.\n"
+        text=f"Вы выбрали {user_data['chosen_food_size']} порцию {user_data['chosen_food']}.\n"
              f"Попробуйте теперь заказать напитки: /drinks",
         reply_markup=ReplyKeyboardRemove()
     )
-    # Сброс состояния и сохранённых данных у пользователя
-    await state.clear()
+    # Сброс состояния и сохранённых данных у пользователя (после выбора напитка, конечно)
+    # await state.clear()
+    await state.set_state(None)
 
 
 @router.message(OrderFood.choosing_food_size)
@@ -94,8 +96,6 @@ async def cmd_drink(message: Message, state: FSMContext):
     )
     # Устанавливаем пользователю состояние "выбирает название"
     await state.set_state(OrderDrink.choosing_drink_name)
-
-# Этап выбора напитка #
 
 
 @router.message(OrderDrink.choosing_drink_name, F.text.in_(available_drinks_names))
@@ -121,13 +121,15 @@ async def drink_chosen_incorrectly(message: Message):
 
 @router.message(OrderDrink.choosing_drink_size, F.text.in_(available_drinks_sizes))
 async def drink_size_chosen(message: Message, state: FSMContext):
+    await state.update_data(chosen_drink_size=message.text.lower())
     user_data = await state.get_data()
     await message.answer(
-        text=f"Вы выбрали {message.text.lower()} объемом {user_data['chosen_drink']}.\n"
+        text=f"Вы выбрали {user_data['chosen_drink_size']} объемом {user_data['chosen_drink']}.\n"
              f"Попробуйте теперь заказать еду: /food",
         reply_markup=ReplyKeyboardRemove()
     )
     # Сброс состояния и сохранённых данных у пользователя
+    print(await state.get_data())
     await state.clear()
 
 
