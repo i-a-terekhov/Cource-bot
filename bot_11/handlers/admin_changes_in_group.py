@@ -8,6 +8,11 @@ from tokenfile import OWNER_CHANNEL_ID
 router = Router()
 router.chat_member.filter(F.chat.id == OWNER_CHANNEL_ID)
 
+# Событие chat_member.
+# Содержит все изменения состояния пользователей в группах и каналах, где бот состоит в качестве
+# администратора: приход/уход юзеров в группы, подписки/отписки в каналах, изменение прав и статусов пользователей,
+# назначение/снятие админов и многое другое.
+
 
 @router.chat_member(ChatMemberUpdatedFilter(
         member_status_changed=(KICKED | LEFT | RESTRICTED | MEMBER) >> (ADMINISTRATOR | CREATOR)

@@ -1,9 +1,7 @@
 from aiogram import F, Router
-from aiogram.filters.chat_member_updated import ChatMemberUpdatedFilter, MEMBER, KICKED
+from aiogram.filters.chat_member_updated import ChatMemberUpdatedFilter, MEMBER, KICKED, JOIN_TRANSITION
 from aiogram.filters.command import CommandStart, Command
 from aiogram.types import ChatMemberUpdated, Message
-from aiogram.filters.chat_member_updated import \
-    ChatMemberUpdatedFilter, JOIN_TRANSITION
 
 router = Router()
 router.my_chat_member.filter(F.chat.type == "private")

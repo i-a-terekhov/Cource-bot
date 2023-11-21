@@ -1,6 +1,6 @@
 from asyncio import sleep
 
-from aiogram import F, Router, Bot
+from aiogram import F, Router
 from aiogram.filters.chat_member_updated import ChatMemberUpdatedFilter,\
     LEAVE_TRANSITION, IS_NOT_MEMBER, MEMBER, ADMINISTRATOR
 from aiogram.types import ChatMemberUpdated
@@ -22,6 +22,10 @@ chats_variants_exit = {
     "supergroup": "супергруппы",
     "channel": "канала",
 }
+
+# Событие my_chat_member.
+# Здесь всё, что касается непосредственно бота, либо ЛС юзера с ботом: (раз)блокировки бота юзером в ЛС,
+# добавление бота в группу или канал, удаление оттуда, изменение прав бота и его статуса в разных чатах и т.д.
 
 
 @router.my_chat_member(

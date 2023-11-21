@@ -3,8 +3,6 @@ import logging
 
 from aiogram import Bot, Dispatcher
 from handlers import in_pm, bot_in_group, admin_changes_in_group, events_in_group
-from middlewares.weekend import WeekendCallbackMiddleware
-from middlewares.long_operation import ChatActionMiddleware
 
 import tokenfile as tf
 
@@ -18,13 +16,11 @@ bot_unit = Bot(token=TOKEN)
 
 async def set_up_routers(dp):
     dp.include_routers(
+        in_pm.router,
         bot_in_group.router,
         events_in_group.router,
         admin_changes_in_group.router,
-        in_pm.router
     )
-    dp.message.outer_middleware(ChatActionMiddleware())
-    dp.callback_query.outer_middleware(WeekendCallbackMiddleware())
 
 
 async def main(bot: Bot):
