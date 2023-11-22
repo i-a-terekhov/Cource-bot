@@ -1,5 +1,9 @@
+from typing import Optional
+
 from aiogram import F, Router
-from aiogram.types import InlineQuery
+from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultCachedPhoto
+
+from storage import get_links_by_id, get_images_by_id
 
 router = Router()
 
@@ -39,3 +43,23 @@ async def show_user_links(inline_query: InlineQuery):
         ))
     # Важно указать is_personal=True!
     await inline_query.answer(results, is_personal=True)
+
+
+@router.inline_query(F.query == "images")
+async def show_user_images(inline_query: InlineQuery):
+    results = []
+    for index, file_id in enumerate(get_images_by_id(inline_query.from_user.id)):
+        # В итоговый массив запихиваем каждую запись
+        results.append(InlineQueryResultCachedPhoto(
+            id=str(index),  # индекс элемента в list
+            photo_file_id=file_id
+        ))
+    # Важно указать is_personal=True!
+    await inline_query.answer(results, is_personal=True)
+
+
+await inline_query.answer(
+        results, is_personal=True,
+        switch_pm_text="Добавить ещё »»",
+        switch_pm_parameter="add"
+    )

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from aiogram import F, Router
-from aiogram.filters import CommandObject
+from aiogram.filters import CommandObject, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
@@ -65,3 +65,17 @@ async def last_step(
 async def text_too_long(message: Message):
     await message.answer("Слишком длинный заголовок. Попробуй ещё раз")
     return
+
+
+@router.message(TextSave.waiting_for_description, F.text.func(len) <= 30)
+@router.message(TextSave.waiting_for_description, Command("skip"))
+async def last_step(...):
+    # тут остальной код функции
+    kb = [[InlineKeyboardButton(
+        text="Попробовать",
+        switch_inline_query="links"
+    )]]
+    await message.answer(
+        text="Ссылка сохранена!",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=kb)
+    )

@@ -10,4 +10,8 @@ class TextSave(StatesGroup):
     waiting_for_description = State()
 
 
+class DeleteCommon(StatesGroup):
+    waiting_for_delete_start = State()
+
+
 
