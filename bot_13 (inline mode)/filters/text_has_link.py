@@ -4,6 +4,8 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
 
+#  В данном переопределенном методе __call__ проверяется наличие каких-либо entities,
+#  при обнаружении первой entity с типом url - функция возвращет ее
 class HasLinkFilter(BaseFilter):
     async def __call__(self, message: Message) -> Union[bool, Dict[str, Any]]:
         # Если entities вообще нет, вернётся None,

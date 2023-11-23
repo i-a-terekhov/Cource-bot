@@ -16,6 +16,7 @@ async def main():
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
 
+    # Для демонстрационных целей используем "оперативную память" - она ненадежна и сбрасывается при перезапуске:
     dp = Dispatcher(storage=MemoryStorage())
     bot = Bot(TOKEN)
 

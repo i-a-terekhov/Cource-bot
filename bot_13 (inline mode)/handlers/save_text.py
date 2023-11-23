@@ -12,6 +12,7 @@ from storage import add_link
 router = Router()
 
 
+# При обнаружении в тексте ссылки, она помещается в data.link, состояние заменяется на waiting_for_title
 @router.message(SaveCommon.waiting_for_save_start, F.text, HasLinkFilter())
 async def save_text_has_link(message: Message, link: str, state: FSMContext):
     await state.update_data(link=link)
@@ -22,6 +23,7 @@ async def save_text_has_link(message: Message, link: str, state: FSMContext):
     )
 
 
+# Если предыдущий хендлер не сработал, это значит, что ссылка не найдена. Сообщаем это юзеру:
 @router.message(SaveCommon.waiting_for_save_start, F.text)
 async def save_text_no_link(message: Message):
     await message.answer(
@@ -30,6 +32,7 @@ async def save_text_no_link(message: Message):
     )
 
 
+# Если заголовок подходит по длине, сохраняем его в data.title, меняем состояние на waiting_for_description
 @router.message(TextSave.waiting_for_title, F.text.len() <= 30)
 async def title_entered_ok(message: Message, state: FSMContext):
     await state.update_data(title=message.text, description=None)
@@ -48,9 +51,10 @@ async def last_step(
         state: FSMContext,
         command: Optional[CommandObject] = None
 ):
+    # Если пользователь не применил команду /skip, сохраняем описание в data.description
     if not command:
         await state.update_data(description=message.text)
-    # Сохраняем данные в нашу ненастоящую БД
+    # Сохраняем данные в нашу ненастоящую БД с помощью функции storage.add_link()
     data = await state.get_data()
     add_link(message.from_user.id, data["link"], data["title"], data["description"])
     await state.clear()
@@ -64,6 +68,7 @@ async def last_step(
     )
 
 
+# Если заголовок или описание вышли за отведенное количество символов:
 @router.message(TextSave.waiting_for_title, F.text)
 @router.message(TextSave.waiting_for_description, F.text)
 async def text_too_long(message: Message):
