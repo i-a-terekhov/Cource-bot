@@ -1,9 +1,9 @@
 from typing import Optional
 
-from aiogram import F, Router
-from aiogram.filters import CommandObject, Command
+from aiogram import Router, F
+from aiogram.filters.command import Command, CommandObject
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from filters import HasLinkFilter
 from states import SaveCommon, TextSave
@@ -30,9 +30,7 @@ async def save_text_no_link(message: Message):
     )
 
 
-# Magic filter позволяет передать на вход какую-либо функцию, которая выполнится над тем, что указано до ".func".
-# Например: F.text.len() <= 30
-@router.message(TextSave.waiting_for_title, F.text.func(len) <= 30)
+@router.message(TextSave.waiting_for_title, F.text.len() <= 30)
 async def title_entered_ok(message: Message, state: FSMContext):
     await state.update_data(title=message.text, description=None)
     await state.set_state(TextSave.waiting_for_description)
@@ -43,7 +41,7 @@ async def title_entered_ok(message: Message, state: FSMContext):
     )
 
 
-@router.message(TextSave.waiting_for_description, F.text.func(len) <= 30)
+@router.message(TextSave.waiting_for_description, F.text.len() <= 30)
 @router.message(TextSave.waiting_for_description, Command("skip"))
 async def last_step(
         message: Message,
@@ -55,22 +53,7 @@ async def last_step(
     # Сохраняем данные в нашу ненастоящую БД
     data = await state.get_data()
     add_link(message.from_user.id, data["link"], data["title"], data["description"])
-
-    await message.answer("Ссылка сохранена!")
     await state.clear()
-
-
-@router.message(TextSave.waiting_for_title, F.text)
-@router.message(TextSave.waiting_for_description, F.text)
-async def text_too_long(message: Message):
-    await message.answer("Слишком длинный заголовок. Попробуй ещё раз")
-    return
-
-
-@router.message(TextSave.waiting_for_description, F.text.func(len) <= 30)
-@router.message(TextSave.waiting_for_description, Command("skip"))
-async def last_step(...):
-    # тут остальной код функции
     kb = [[InlineKeyboardButton(
         text="Попробовать",
         switch_inline_query="links"
@@ -79,3 +62,10 @@ async def last_step(...):
         text="Ссылка сохранена!",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=kb)
     )
+
+
+@router.message(TextSave.waiting_for_title, F.text)
+@router.message(TextSave.waiting_for_description, F.text)
+async def text_too_long(message: Message):
+    await message.answer("Слишком длинный заголовок. Попробуй ещё раз")
+    return

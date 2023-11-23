@@ -1,3 +1,10 @@
+from aiogram import Router, F
+from aiogram.types import InlineQuery, \
+    InlineQueryResultArticle, InputTextMessageContent
+
+router = Router()
+
+
 def get_fake_results(start_num: int, size: int = 50) -> list[int]:
     """
     Генерирует список из последовательных чисел

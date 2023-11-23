@@ -3,11 +3,11 @@ from aiogram.types import ChosenInlineResult
 
 router = Router()
 
+
 @router.chosen_inline_result()
 async def pagination_demo(
         chosen_result: ChosenInlineResult,
 ):
-    # Пишем прямо на экран. Но, возможно, вы захотите сохранять куда-то
     print(
         f"After '{chosen_result.query}' query, "
         f"user chose option with ID '{chosen_result.result_id}'"
